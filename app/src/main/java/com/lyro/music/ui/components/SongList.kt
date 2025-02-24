@@ -6,10 +6,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,7 +29,7 @@ import com.lyro.music.core.capabilities.songs.domain.dtos.Song
 fun SongList(songs: List<Song>, onItemClick: (Int) -> Unit = {}) {
     LazyColumn {
         itemsIndexed(songs) { index, song ->
-            SongItem(song, modifier = Modifier.clickable { onItemClick(index) })
+            SongItem(title = song.title, artist = song.artist, image = song.imagePath, onPress = { onItemClick(index) })
             if (index < songs.lastIndex) {
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -39,18 +39,23 @@ fun SongList(songs: List<Song>, onItemClick: (Int) -> Unit = {}) {
 
 @Composable
 fun SongItem(
-    song: Song,
-    modifier: Modifier
+    title: String,
+    artist: String,
+    image: Uri,
+    onPress: (() -> Unit)? = null
 ) {
     Row(
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(64.dp)
+            .then(if (onPress != null) Modifier.clickable { onPress() } else Modifier)
     ) {
-        SongThumbnail(song.imagePath, contentDescription = null)
+        SongThumbnail(image, contentDescription = null)
         Column(
             modifier = Modifier.padding(horizontal = 12.dp)
         ) {
-            Text(text = song.title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(text = song.artist)
+            Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(text = artist)
         }
     }
 }
@@ -61,7 +66,7 @@ fun SongThumbnail(albumArtUri: Uri, contentDescription: String?) {
         model = albumArtUri,
         contentDescription = contentDescription,
         modifier = Modifier
-            .size(64.dp)
+            .aspectRatio(1f)
             .clip(RoundedCornerShape(12.dp))
             .background(Color.Gray),
         contentScale = ContentScale.Crop

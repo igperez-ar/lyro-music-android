@@ -12,4 +12,7 @@
     to the controller</string>
 
     <string name="notification_channel_name">Playback cannot be resumed</string>
+
+    <string name="grant_permissions">Grant permissions</string>
+    <string name="read_permissions_rationale">App needs read permissions to load local audio files.</string>
 </resources>

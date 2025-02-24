@@ -1,8 +1,10 @@
 package com.lyro.music.ui.components.player
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,48 +13,63 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.lyro.music.ui.components.SongThumbnail
 import com.lyro.music.ui.state.PlayerState
-import com.lyro.music.ui.utility.isBuffering
+import com.lyro.music.extension.isBuffering
 
 @Composable
 fun CompactPlayerView(
     modifier: Modifier = Modifier,
-    playerState: PlayerState
+    playerState: PlayerState,
+    onPlayerClick: () -> Unit = {}
 ) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp)
+        modifier = modifier
+            .height(80.dp)
+            .clickable { onPlayerClick() },
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .padding(vertical = 12.dp)
         ) {
             Row(
                 modifier = Modifier
-                    .weight(1f) // give weight to text and image row
-                    .padding(end = 8.dp), // add padding to ensure space for the icon
+                    .weight(1f)
+                    .padding(end = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val currentMediaItem = playerState.currentMediaItem
                 if (currentMediaItem != null) {
-                    MiniPlayerArtworkView(
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .padding(4.dp),
-                        artworkUri = currentMediaItem.mediaMetadata.artworkUri
+                    SongThumbnail(
+                        albumArtUri = currentMediaItem.mediaMetadata.artworkUri!!,
+                        contentDescription = null
                     )
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .weight(1f), // give weight to the text
-                        text = currentMediaItem.mediaMetadata.displayTitle.toString(),
-                        color = Color.Black,
-                        maxLines = 1, // prevent text from wrapping
-                        overflow = TextOverflow.Ellipsis // add ellipsis when text is too long
-                    )
+                    Column {
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 8.dp),
+                            text = currentMediaItem.mediaMetadata.displayTitle.toString(),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 8.dp),
+                            text = currentMediaItem.mediaMetadata.artist.toString(),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
             PlayPauseButton(

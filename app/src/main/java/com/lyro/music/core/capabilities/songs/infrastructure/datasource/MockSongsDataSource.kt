@@ -8,7 +8,7 @@ import javax.inject.Inject
 class MockSongsDataSource @Inject constructor() : SongsRepository {
     override fun getAllSongs(): List<Song> = listOf(
         Song(
-            id = "22",
+            id = "21",
             title = "Bring Me To Life",
             artist = "Evanescence",
             album = "Fallen",
@@ -17,7 +17,7 @@ class MockSongsDataSource @Inject constructor() : SongsRepository {
             data = Uri.parse("/storage/emulated/0/Download/Bring Me To Life.mp3")
         ),
         Song(
-            id = "23",
+            id = "22",
             title = "The Sound of Silence",
             artist = "Disturbed",
             album = "The Sound of Silence",
@@ -26,7 +26,7 @@ class MockSongsDataSource @Inject constructor() : SongsRepository {
             data = Uri.parse("/storage/emulated/0/Download/The Sound of Silence.mp3")
         ),
         Song(
-            id = "21",
+            id = "23",
             title = "Divenire",
             artist = "Ludovico Einaudi",
             album = "In a Time Lapse",

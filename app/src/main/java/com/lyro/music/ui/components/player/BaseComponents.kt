@@ -1,28 +1,41 @@
 package com.lyro.music.ui.components.player
 
 import android.net.Uri
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
 import androidx.media3.ui.R
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 @Composable
 fun PlayPauseButton(
@@ -102,22 +115,114 @@ fun TimeBar(
 ) {
     val currentPosition = remember { mutableLongStateOf(0L) }
     val duration = remember { mutableLongStateOf(0L) }
-    LaunchedEffect(player) {
-        snapshotFlow { player.currentPosition }
-            .collect { currentPosition.longValue = it }
+    val isTracking = remember { mutableStateOf(false) }
 
-        snapshotFlow { player.duration }
-            .collect { duration.longValue = it }
+    // Generate random heights for bars (in a real app, this would be actual waveform data)
+    val barHeights = remember {
+        List(100) { Random.nextFloat() * 0.8f + 0.2f }
     }
 
-    Slider(
-        modifier = modifier,
-        value = currentPosition.longValue.toFloat(),
-        onValueChange = {
+    LaunchedEffect(player) {
+        while (true) {
+            if (!isTracking.value) {
+                currentPosition.longValue = player.currentPosition
+            }
+            delay(16)
+        }
+    }
 
-        },
-        valueRange = 0f..duration.longValue.toFloat()
-    )
+    LaunchedEffect(player) {
+        snapshotFlow { player.duration }
+            .collect { 
+                duration.longValue = it
+                if (!isTracking.value) {
+                    currentPosition.longValue = 0L
+                }
+            }
+    }
+
+    val durationValue = duration.longValue
+    if (durationValue > 0) {
+        WaveformProgressBar(
+            modifier = modifier
+                .height(48.dp)
+                .fillMaxWidth(),
+            progress = currentPosition.longValue.toFloat() / durationValue.toFloat(),
+            barHeights = barHeights,
+            onProgressChange = { progress ->
+                isTracking.value = true
+                currentPosition.longValue = (progress * durationValue).toLong()
+            },
+            onProgressChangeFinished = {
+                player.seekTo(currentPosition.longValue)
+                isTracking.value = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun WaveformProgressBar(
+    modifier: Modifier = Modifier,
+    progress: Float,
+    barHeights: List<Float>,
+    onProgressChange: (Float) -> Unit,
+    onProgressChangeFinished: () -> Unit
+) {
+    val color = MaterialTheme.colorScheme.primary;
+    var isInteracting by remember { mutableStateOf(false) }
+
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { offset ->
+                        isInteracting = true
+                        val newProgress = (offset.x / size.width).coerceIn(0f, 1f)
+                        onProgressChange(newProgress)
+                        onProgressChangeFinished()
+                        isInteracting = false
+                    }
+                )
+            }
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragStart = { isInteracting = true },
+                    onDragEnd = {
+                        isInteracting = false
+                        onProgressChangeFinished()
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        val delta = dragAmount / size.width
+                        onProgressChange((progress + delta).coerceIn(0f, 1f))
+                    }
+                )
+            }
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val barWidth = (size.width / barHeights.size) * 0.8f
+            val spacing = (size.width / barHeights.size) * 1f
+            val progressWidth = size.width * progress
+
+            barHeights.forEachIndexed { index, height ->
+                val barX = index * (barWidth + spacing)
+                val barHeight = size.height * height
+
+                drawRect(
+                    color = if (barX <= progressWidth)
+                        color
+                    else
+                        color.copy(alpha = 0.3f),
+                    topLeft = Offset(
+                        x = barX,
+                        y = (size.height - barHeight) / 2
+                    ),
+                    size = Size(barWidth, barHeight)
+                )
+            }
+        }
+    }
 }
 
 @Composable

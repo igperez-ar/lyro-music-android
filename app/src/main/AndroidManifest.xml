@@ -30,7 +30,7 @@
             </intent-filter>
         </service>
         <activity
-            android:name="com.lyro.music.ui.screens.MainActivity"
+            android:name="com.lyro.music.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Lyro">
             <intent-filter>

@@ -12,21 +12,10 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getSongsUseCase: GetSongsUseCase
 ) : ViewModel() {
-    private val _isPlayerSetUp = MutableStateFlow(false)
-    val isPlayerSetUp: StateFlow<Boolean> = _isPlayerSetUp
-
     private val _songs = MutableStateFlow<List<Song>>(emptyList())
     val songs: StateFlow<List<Song>> = _songs
 
-    init {
-        loadSongs()
-    }
-
-    private fun loadSongs() {
+    fun loadSongs() {
         _songs.value = getSongsUseCase()
-    }
-
-    fun setupPlayer() {
-        _isPlayerSetUp.value = true
     }
 }

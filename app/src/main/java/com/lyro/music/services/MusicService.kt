@@ -16,7 +16,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import com.lyro.music.R
-import com.lyro.music.ui.screens.MainActivity
+import com.lyro.music.MainActivity
 
 class MusicService : MediaSessionService() {
     private var _mediaSession: MediaSession? = null
